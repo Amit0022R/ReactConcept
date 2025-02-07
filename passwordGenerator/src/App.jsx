@@ -1,10 +1,14 @@
-import { useState , useCallback } from "react"
+import { useState , useCallback , useEffect , useRef } from "react"
 
 function App() {
   const [ length , setLength ] = useState(8);
   const [ numberAllowed , setnumberAllowed ] = useState(false);
   const [ charAllowed , setcharAllowed ] = useState(false);
   const [ password , setPassword ] = useState("");
+
+  // useRef hoook for copy length by clicking
+  const passwordRef = useRef(null);
+
 
   const passwordGenerator = useCallback( () => {
     let pass = ""
@@ -13,16 +17,25 @@ function App() {
     if( charAllowed ) str += "!@#$%^&*-_+=[]{}~`"
 
     // ab ek password banaba hai jo ki length chalega
-    for (let i = 1; i <= array.length; i++) {
+    for (let i = 1; i <= length; i++) {
       let char = Math.floor(Math.random() * str.length + 1);
-      pass = str.charAt(char);
+      pass += str.charAt(char);
     }
       setPassword(pass);
 
   } , [ length , numberAllowed , charAllowed , setPassword ])
  
+  const copyPasswordToClipboard = useCallback( () => {
+    passwordRef.current?.select();
+    passwordRef.current?.setSelectionRange( 0 , length );
+      window.navigator.clipboard.writeText(password)
+  } , [password] )
+  // copy button password se related hai toh dependencies hai password
 
-  
+    useEffect( () => {
+      passwordGenerator()
+    } , [length, numberAllowed, charAllowed ,passwordGenerator] )  
+    // passwordGenerator if phirse run hoga toh useEffect effect hoga
 
   return (
     <>
@@ -35,10 +48,11 @@ function App() {
          className="outline-none w-full py-2 px-3 rounded-md  "
          placeholder="Password"
          readOnly
-          /> 
+        ref={passwordRef}
+          />  
           {/* readOnly se koi uske ander aake likh nhi skta */}
-
         <button 
+        onClick={copyPasswordToClipboard}
           className="outline-none  bg-blue-600 text-white px-3 py-0.5 shrink-0 "
         >
           Copy
